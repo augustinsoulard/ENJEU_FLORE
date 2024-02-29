@@ -148,7 +148,7 @@ ProtectionPACA = function(x){
 TAXREFv17_FLORE_JOIN$PROTECTION_AURA = apply(TAXREFv17_FLORE_JOIN,1,ProtectionPACA)
 
 #Enregistrement du tableau a integrer à la methode enjeu PACA
-write.csv(TAXREFv17_FLORE_JOIN,file = "TAXREFv17_FLORE_JOIN.csv",row.names = F,fileEncoding = "UTF-8",na="-")
+write.csv(TAXREFv17_FLORE_JOIN,file = "TAB_GEN_METH_ENJEU_PACA.csv",row.names = F,fileEncoding = "UTF-8",na="-")
 
 ####################################
 ####################################
