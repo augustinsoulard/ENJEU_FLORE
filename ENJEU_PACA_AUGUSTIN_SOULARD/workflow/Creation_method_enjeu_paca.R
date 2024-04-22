@@ -145,11 +145,55 @@ ProtectionPACA = function(x){
   return(valeur)
 }
 
-TAXREFv17_FLORE_JOIN$PROTECTION_AURA = apply(TAXREFv17_FLORE_JOIN,1,ProtectionPACA)
+TAXREFv17_FLORE_JOIN$PROTECTION_PACA = apply(TAXREFv17_FLORE_JOIN,1,ProtectionPACA)
+
+###############Ajout de baseflor################
+baseflor_bryoTAXREFv16 <- read.csv("../../../BDD_FLORE_CONSTRUCT/TAXONOMIE/TAXREF-MATCH-BASEFLOR/baseflor_bryoTAXREFv16.csv", sep=";")
+
+baseflor_bryoTAXREFv16 = baseflor_bryoTAXREFv16 %>% select(CD_NOM,floraison,ecologie = CARACTERISATION_ECOLOGIQUE_.HABITAT_OPTIMAL., syntaxon = INDICATION_PHYTOSOCIOLOGIQUE_CARACTERISTIQUE)
+
+# Vecteur de correspondance des chiffres aux mois
+correspondance_mois <- c("Janvier", "Février", "Mars", "Avril", "Mai", "Juin", "Juillet", "Août", "Septembre", "Octobre", "Novembre", "Décembre")
+
+# Fonction pour remplacer un chiffre par un mois
+remplacer_chiffre_par_mois <- function(chiffre) {
+  chiffres <- as.numeric(unlist(strsplit(chiffre, "-")))
+  mois <- paste(correspondance_mois[chiffres], collapse = "-")
+  return(mois)
+}
+
+# Appliquer la fonction sur la colonne du dataframe
+baseflor_bryoTAXREFv16$floraison <- sapply(baseflor_bryoTAXREFv16$floraison, remplacer_chiffre_par_mois)
+
+# jointure avec le reste du tableau
+baseflor_bryoTAXREFv16$CD_NOM = as.double(baseflor_bryoTAXREFv16$CD_NOM)
+joinbaseflor = left_join(TAXREFv17_FLORE_JOIN,baseflor_bryoTAXREFv16,by="CD_NOM")
+
+#Ajout de BDD_FICHE_FLORE
+BDD_FICHE_FLORE <- read_excel("D:/Github/BDD_FLORE_CONSTRUCT/BDD_FICHE_FLORE/BDD_FICHE_FLORE.xlsx", 
+                              sheet = "IMG")
+BDD_FICHE_FLORE = BDD_FICHE_FLORE %>% select(CD_NOM,PATH_IMG,TEXTE_LEGEND_IMG)
+join_BDD_IMG = left_join(joinbaseflor,BDD_FICHE_FLORE,by="CD_NOM")
+
+TAB_TO_EXPORT=join_BDD_IMG
+
 
 #Enregistrement du tableau a integrer à la methode enjeu PACA
-write.csv(TAXREFv17_FLORE_JOIN,file = "TAB_GEN_METH_ENJEU_PACA.csv",row.names = F,fileEncoding = "UTF-8",na="-")
+write.csv(TAB_TO_EXPORT,file = "TAB_GEN_METH_ENJEU_PACA.csv",row.names = F,fileEncoding = "UTF-8",na="-")
 
+
+
+
+
+
+
+
+
+
+
+
+
+##################################################################################
 ####################################
 ####################################
 #MISE A JOUR TAXREF
