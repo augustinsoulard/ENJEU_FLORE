@@ -35,8 +35,9 @@ TAXREFv17_FLORE_FR$CD_NOM = as.character(TAXREFv17_FLORE_FR$CD_NOM)
 
 # Filtre de la base de connaissance pour la flore
 BDC_STATUTS_17_FLORE = BDC_STATUTS_17 %>% 
-  filter(BDC_STATUTS_17$CD_NOM %in% TAXREFv17_FLORE_FR$CD_REF) %>%
-  filter(LB_ADM_TR %in% c("Monde","Europe") | CD_ISO3166_1 %in% c("FXX","FRA") | 
+  filter(BDC_STATUTS_17$CD_NOM %in% TAXREFv17_FLORE_FR$CD_REF | BDC_STATUTS_17$CD_REF %in% TAXREFv17_FLORE_FR$CD_REF) %>%
+  filter(LB_ADM_TR %in% c("Monde","Europe") |
+           CD_ISO3166_1 %in% c("FXX","FRA") | 
            CD_ISO3166_2 %in% c("FR-13","FR-04","FR-05","FR-06","FR-83","FR-84","FR-U"))
 #Creer le futur nom des colonnes
 BDC_STATUTS_17_FLORE$LB_STATUT_COL = make.names(paste0(BDC_STATUTS_17_FLORE$LB_TYPE_STATUT,"_",
@@ -53,12 +54,12 @@ for(i in 1:length(levels(as.factor(BDC_STATUTS_17_FLORE$LB_STATUT_COL)))){
     filter(BDC_STATUTS_17_FLORE$LB_STATUT_COL %in% LB_STATUT)
   
   BDC_TO_JOIN = BDC_WORFLOW %>%
-    distinct(CD_NOM, .keep_all = TRUE) %>%
-    select(CD_NOM, CODE_STATUT) %>%
+    distinct(CD_REF, .keep_all = TRUE) %>%
+    select(CD_REF, CODE_STATUT) %>%
     rename(!!LB_STATUT := CODE_STATUT)
   
   #Jointure avec le TAXREF
-  TAXREFv17_FLORE_JOIN = left_join(TAXREFv17_FLORE_JOIN,BDC_TO_JOIN,by=c("CD_REF"="CD_NOM"))
+  TAXREFv17_FLORE_JOIN = left_join(TAXREFv17_FLORE_JOIN,BDC_TO_JOIN,by=c("CD_REF"="CD_REF"))
   
 }
 
