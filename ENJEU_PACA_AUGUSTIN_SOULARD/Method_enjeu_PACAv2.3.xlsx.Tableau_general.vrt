@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<OGRVRTDataSource>
+    <OGRVRTLayer name="Method_enjeu_PACAv2.3">
+        <SrcDataSource relativeToVRT="1">Method_enjeu_PACAv2.3.xlsx</SrcDataSource>
+        <!--Header=False-->
+        <SrcLayer>Tableau_general</SrcLayer>
+        <Field name="CD_NOM" src="CD_NOM" type="Integer"/>
+        <Field name="TRIGRAMME" src="TRIGRAMME" type="String"/>
+        <Field name="NOM_VALIDE" src="NOM_VALIDE" type="String"/>
+        <Field name="NOM_VERN" src="NOM_VERN" type="String"/>
+        <Field name="FAMILLE" src="FAMILLE" type="String"/>
+        <Field name="SOUS_FAMILLE" src="SOUS_FAMILLE" type="String"/>
+        <Field name="INDIGENAT" src="INDIGENAT" type="String"/>
+        <Field name="EVEE" src="EVEE" type="String"/>
+        <Field name="DH" src="DH" type="String"/>
+        <Field name="PN" src="PN" type="String"/>
+        <Field name="LRN" src="LRN" type="String"/>
+        <Field name="PR" src="PR" type="String"/>
+        <Field name="PR_Corr" src="PR_Corr" type="String"/>
+        <Field name="LRR" src="LRR" type="String"/>
+        <Field name="ZNIEFF" src="ZNIEFF" type="String"/>
+        <Field name="PD04" src="PD04" type="String"/>
+        <Field name="PD05" src="PD05" type="String"/>
+        <Field name="PD06" src="PD06" type="String"/>
+        <Field name="PD83" src="PD83" type="String"/>
+        <Field name="PD84" src="PD84" type="String"/>
+        <Field name="ENJEU_CBN" src="ENJEU_CBN" type="String"/>
+        <Field name="indicatrice_ZH" src="indicatrice_ZH" type="String"/>
+        <Field name="Barcelonne" src="Barcelonne" type="String"/>
+        <Field name="Berne" src="Berne" type="String"/>
+        <Field name="Mondiale" src="Mondiale" type="String"/>
+        <Field name="Europe" src="Europe" type="String"/>
+        <Field name="PROTECTION_PACA" src="PROTECTION_PACA" type="String"/>
+        <Field name="floraison" src="floraison" type="String"/>
+        <Field name="ecologie" src="ecologie" type="String"/>
+        <Field name="syntaxon" src="syntaxon" type="String"/>
+        <Field name="PATH_IMG" src="PATH_IMG" type="String"/>
+        <Field name="TEXTE_LEGEND_IMG" src="TEXTE_LEGEND_IMG" type="String"/>
+        <Field name="PointINDIGENAT" src="PointINDIGENAT" type="String"/>
+        <Field name="PointLRN" src="PointLRN" type="String"/>
+        <Field name="PointZNIEFF" src="PointZNIEFF" type="String"/>
+        <Field name="PointLRR" src="PointLRR" type="String"/>
+        <Field name="PointEEE" src="PointEEE" type="String"/>
+        <Field name="PointENJEU_CBN" src="PointENJEU_CBN" type="String"/>
+        <Field name="TotalPoint" src="TotalPoint" type="String"/>
+        <Field name="DD_RATE" src="DD_RATE" type="Integer"/>
+        <Field name="INTERET_PACA" src="INTERET_PACA" type="String"/>
+        <Field name="PROTECTION_PACA" src="PROTECTION_PACA" type="String"/>
+    </OGRVRTLayer>
+</OGRVRTDataSource>

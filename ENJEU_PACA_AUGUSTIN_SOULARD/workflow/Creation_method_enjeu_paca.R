@@ -12,7 +12,6 @@ setwd(WD)
 
 # Charger les bibliotheques necessaires
 if(!require("readxl")){install.packages("readxl")} ; library("readxl")
-if(!require("xlsx")){install.packages("xlsx")} ; library("xlsx")
 if(!require("tidyverse")){install.packages("tidyverse")} ; library("tidyverse")
 
 
