@@ -50,7 +50,7 @@ BDC_STATUTS_17_FLORE = BDC_STATUTS_17_FLORE %>%
              "Protection.départementale_Ain", "Protection.départementale_Drôme", 
             "Protection.départementale_Haute.Savoie", 
             "Protection.départementale_Isère","Protection.départementale_Loire",
-             "Protection.nationale_France.métropolitaine", "Protection.régionale_Rhône.Alpes",
+             "Protection.nationale_France.métropolitaine", "Protection.régionale_Rhône.Alpes", "Protection.régionale_Auvergne",
              "Sensibilité.départementale_Ain", "Sensibilité.départementale_Ardèche",
             "Sensibilité.départementale_Cantal", 
              "Sensibilité.départementale_Drôme", "Sensibilité.départementale_Haute.Loire", 
@@ -150,8 +150,8 @@ TAXREFv17_FLORE_JOIN = TAXREFv17_FLORE_JOIN %>% select(CD_NOM = CD_REF,
                                 DH = Directive.Habitat_France.métropolitaine,
                                 PN = Protection.nationale_France.métropolitaine,
                                 LRN = Liste.rouge.nationale_France.métropolitaine,
-                                PR = Protection.régionale_Rhône.Alpes,
-                                PR_Corr = Protection.régionale_Rhône.Alpes,
+                                PR_RA = Protection.régionale_Rhône.Alpes,
+                                PR_Au = Protection.régionale_Auvergne,
                                 LRR = Liste.rouge.régionale_Rhône.Alpes,
                                 ZNIEFF = ZNIEFF.Déterminantes_Ain,# Les ZNIEFF départementale sont toutes les mêmes
                                 #ZNIEFF03 = ZNIEFF.Déterminantes_Allier,
@@ -232,8 +232,11 @@ TAXREFv17_FLORE_JOIN[!is.na(TAXREFv17_FLORE_JOIN$ZNIEFF),]$ZNIEFF = "D"
    if(!is.na(x["PN"]) && x["PN"] != "-"){
      valeur = paste0(valeur," ","PN")
    }
-   if(!is.na(x["PR"]) && x["PR"] != "-"){
-     valeur = paste0(valeur," ","PR")
+   if(!is.na(x["PR_RA"]) && x["PR_RA"] != "-"){
+     valeur = paste0(valeur," ","PR_RA")
+   }
+   if(!is.na(x["PR_Au"]) && x["PR_Au"] != "-"){
+     valeur = paste0(valeur," ","PR_Au")
    }
   if(!is.na(x["PD01"]) && x["PD01"] != "-"){
     valeur = paste0(valeur," ","PD01")
@@ -282,7 +285,7 @@ baseflor_bryoTAXREFv16$CD_NOM = as.double(baseflor_bryoTAXREFv16$CD_NOM)
 joinbaseflor = left_join(TAXREFv17_FLORE_JOIN,baseflor_bryoTAXREFv16,by="CD_NOM")
 
 #Ajout de BDD_FICHE_FLORE
-BDD_FICHE_FLORE <- read_excel("../../../BDD_FLORE_CONSTRUCT/BDD_FICHE_FLORE/BDD_FICHE_FLORE.xlsx", 
+BDD_FICHE_FLORE <- read_excel("../../../Caulis/data/bdd_img/BDD_IMG_FLORE.xlsx", 
                               sheet = "IMG")
 BDD_FICHE_FLORE = BDD_FICHE_FLORE %>% select(CD_NOM,PATH_IMG,TEXTE_LEGEND_IMG)
 join_BDD_IMG = left_join(joinbaseflor,BDD_FICHE_FLORE,by="CD_NOM")
