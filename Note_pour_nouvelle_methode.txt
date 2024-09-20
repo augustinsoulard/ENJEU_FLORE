@@ -1,0 +1,3 @@
+Double condition Excel : =INDEX(C2:C4; EQUIV(1; (A2:A4="Chaise") * (B2:B4="Bleu"); 0))
+
+Après avoir écrit la formule, vous devez appuyer sur Ctrl + Shift + Entrée car c'est une formule matricielle.
