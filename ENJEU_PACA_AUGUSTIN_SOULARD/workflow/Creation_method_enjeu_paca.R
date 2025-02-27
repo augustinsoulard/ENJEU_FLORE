@@ -13,6 +13,7 @@ setwd(WD)
 # Charger les bibliotheques necessaires
 if(!require("readxl")){install.packages("readxl")} ; library("readxl")
 if(!require("tidyverse")){install.packages("tidyverse")} ; library("tidyverse")
+if(!require("dplyr")){install.packages("dplyr")} ; library("dplyr")
 
 
 # URL du fichier ZIP contenant le Shapefile
@@ -25,71 +26,69 @@ download.file(url_zip, destfile = "BaseConnaissance.zip", mode = "wb")
 unzip("BaseConnaissance.zip")
 
 #Import de la base de connaissance
-BDC_STATUTS_17 <- read.csv("BDC-Statuts-v17/BDC_STATUTS_17.csv")
+BDC_STATUTS <- read.csv("bdc_statuts_18.csv") ### MODIFIER LA VERSION
 
 
-# Import de TAXREFv17
-TAXREFv17_FLORE_FR <- read.csv("../../../BDD_FLORE_CONSTRUCT/TAXONOMIE/TAXREF/TAXREFv17_FLORE_FR.csv")
-TAXREFv17_FLORE_FR$CD_NOM = as.character(TAXREFv17_FLORE_FR$CD_NOM)
+# Import de TAXREF
+TAXREF_FLORE_FR <- read.csv("../../../BDD_FLORE_CONSTRUCT/TAXONOMIE/TAXREF/TAXREFv18_FLORE_FR.csv") ### MODIFIER LA VERSION TAXREF
+TAXREF_FLORE_FR$CD_NOM = as.character(TAXREF_FLORE_FR$CD_NOM)### MODIFIER LA VERSION TAXREF
 
 # Filtre de la base de connaissance pour la flore
-BDC_STATUTS_17_FLORE = BDC_STATUTS_17 %>% 
-  filter(BDC_STATUTS_17$CD_NOM %in% TAXREFv17_FLORE_FR$CD_REF | BDC_STATUTS_17$CD_REF %in% TAXREFv17_FLORE_FR$CD_REF) %>%
+BDC_STATUTS_FLORE = BDC_STATUTS %>% 
+  filter(BDC_STATUTS$CD_NOM %in% TAXREF_FLORE_FR$CD_REF | BDC_STATUTS$CD_REF %in% TAXREF_FLORE_FR$CD_REF) %>%
   filter(LB_ADM_TR %in% c("Monde","Europe") |
            CD_ISO3166_1 %in% c("FXX","FRA") | 
            CD_ISO3166_2 %in% c("FR-13","FR-04","FR-05","FR-06","FR-83","FR-84","FR-U"))
 #Creer le futur nom des colonnes
-BDC_STATUTS_17_FLORE$LB_STATUT_COL = make.names(paste0(BDC_STATUTS_17_FLORE$LB_TYPE_STATUT,"_",
-                                                       BDC_STATUTS_17_FLORE$LB_ADM_TR))
+BDC_STATUTS_FLORE$LB_STATUT_COL = make.names(paste0(BDC_STATUTS_FLORE$LB_TYPE_STATUT,"_",
+                                                       BDC_STATUTS_FLORE$LB_ADM_TR))
 
 
 # Traitement du tableau pour l'horizontaliser
-TAXREFv17_FLORE_JOIN = TAXREFv17_FLORE_FR
-for(i in 1:length(levels(as.factor(BDC_STATUTS_17_FLORE$LB_STATUT_COL)))){
-  cat(i,"/",length(levels(as.factor(BDC_STATUTS_17_FLORE$LB_STATUT_COL))),"\n")
-  LB_STATUT = levels(as.factor(BDC_STATUTS_17_FLORE$LB_STATUT_COL))[i]
-  
-  BDC_WORFLOW = BDC_STATUTS_17_FLORE %>%
-    filter(BDC_STATUTS_17_FLORE$LB_STATUT_COL %in% LB_STATUT)
-  
-  BDC_TO_JOIN = BDC_WORFLOW %>%
-    distinct(CD_REF, .keep_all = TRUE) %>%
-    select(CD_REF, CODE_STATUT) %>%
-    rename(!!LB_STATUT := CODE_STATUT)
-  
-  #Jointure avec le TAXREF
-  TAXREFv17_FLORE_JOIN = left_join(TAXREFv17_FLORE_JOIN,BDC_TO_JOIN,by=c("CD_REF"="CD_REF"))
-  
-}
+
+# Créer une table des statuts uniques pour chaque CD_REF
+BDC_TO_JOIN <- BDC_STATUTS_FLORE %>%
+  distinct(CD_REF, LB_STATUT_COL, CODE_STATUT) %>%
+  rename(LB_STATUT = CODE_STATUT)
+
+# Transformer les statuts en colonnes avec pivot_wider
+BDC_TO_JOIN_WIDE <- BDC_TO_JOIN %>%
+  pivot_wider(names_from = LB_STATUT_COL, values_from = LB_STATUT, values_fn = list(LB_STATUT = ~ paste(unique(.), collapse = ", ")))
+
+# Jointure finale avec TAXREF_FLORE_FR
+TAXREF_FLORE_JOIN <- TAXREF_FLORE_FR %>%
+  left_join(BDC_TO_JOIN_WIDE, by = "CD_REF")
 
 
 #### Ajout des plantes indicatrices ZH et des EEEs
 #Chargement flore ZH
-FloreZH = read.csv("../../../01_MINI_OUTILS/ZONE_HUMIDE/RfloreZH/FloreZH.csv")
+FloreZH = read.csv("../../../ZONE_HUMIDE/RfloreZH/FloreZH.csv")
 # FloreZH = read.csv("../../../ZONE_HUMIDE/RfloreZH/FloreZH.csv")
-TAXREFv17_FLORE_JOIN = left_join(TAXREFv17_FLORE_JOIN,FloreZH,by=c("CD_REF"="CODE.FVF"))
+TAXREF_FLORE_JOIN = left_join(TAXREF_FLORE_JOIN,FloreZH,by=c("CD_REF"="CODE.FVF"))
 
 # Chargement flore EEE
 TAB_EVEE_PACA <- read_excel("../../../BDD_FLORE_CONSTRUCT/EEE/PACA/TAB_EVEE_PACA.xlsx")
-TAB_EVEE_PACA = TAB_EVEE_PACA %>% select(CD_NOM,categorie_paca)
+TAB_EVEE_PACA = TAB_EVEE_PACA %>% select(CD_NOM,categorie_paca = categorie_paca)
 
 # Jointure flore EVEE
-TAXREFv17_FLORE_JOIN = left_join(TAXREFv17_FLORE_JOIN,TAB_EVEE_PACA,by=c("CD_REF"="CD_NOM"))
+TAXREF_FLORE_JOIN = left_join(TAXREF_FLORE_JOIN,TAB_EVEE_PACA,by=c("CD_REF"="CD_NOM"))
 
 # Chargement enjeu CBN
-ENJEU_CBN <- read.csv2("../../HIERARCHISATION_CBN_PACA/WORKFLOW/HIERARCHISATION_ENJEU_RESEDA_TAXREFv17.csv")
+ENJEU_CBN <- read.csv2("../../HIERARCHISATION_CBN_PACA/WORKFLOW/HIERARCHISATION_ENJEU_RESEDA_TAXREFv18.csv")
 ENJEU_CBN$CD_NOM = as.double(ENJEU_CBN$CD_NOM)
-ENJEU_CBN = ENJEU_CBN %>% select(CD_NOM,ENJEU_CONSERVATION)
+ENJEU_CBN = ENJEU_CBN %>% dplyr::select(CD_NOM,ENJEU_CONSERVATION=ENJEU_CONSERVATION)
+
 # Jointure enjeu CBN
-TAXREFv17_FLORE_JOIN = left_join(TAXREFv17_FLORE_JOIN,ENJEU_CBN,by=c("CD_REF"="CD_NOM"))
+TAXREF_FLORE_JOIN$CD_NOM = as.double(TAXREF_FLORE_JOIN$CD_NOM)
+TAXREF_FLORE_JOIN = left_join(TAXREF_FLORE_JOIN,ENJEU_CBN,by=c("CD_NOM"="CD_NOM"))
 
 #Selection des colonnes pour le tableau final
-TAXREFv17_FLORE_JOIN = TAXREFv17_FLORE_JOIN %>% select(CD_NOM = CD_REF,
-                                                       TRIGRAMME,
-                                                       NOM_VALIDE,
-                                                       NOM_VERN,
-                                                       FAMILLE,
-                                                       SOUS_FAMILLE,
+TAXREF_FLORE_JOIN = TAXREF_FLORE_JOIN %>% dplyr::select(CD_NOM = CD_NOM,
+                                                       TRIGRAMME=TRIGRAMME,
+                                                       NOM_VALIDE=NOM_VALIDE.x,
+                                                       NOM_VERN=NOM_VERN,
+                                                       FAMILLE=FAMILLE,
+                                                       SOUS_FAMILLE=SOUS_FAMILLE,
                                                        INDIGENAT = FR, 
                                                        EVEE = categorie_paca,
                                                        DH = Directive.Habitat_France.métropolitaine,
@@ -113,7 +112,7 @@ TAXREFv17_FLORE_JOIN = TAXREFv17_FLORE_JOIN %>% select(CD_NOM = CD_REF,
 )
 
 ## Mise en forme colonne ZNIEFF
-TAXREFv17_FLORE_JOIN[!is.na(TAXREFv17_FLORE_JOIN$ZNIEFF),]$ZNIEFF = "D"
+TAXREF_FLORE_JOIN[!is.na(TAXREF_FLORE_JOIN$ZNIEFF),]$ZNIEFF = "D"
 
 #Création de la colonne Protection AuRA
 ProtectionPACA = function(x){
@@ -145,12 +144,14 @@ ProtectionPACA = function(x){
   return(valeur)
 }
 
-TAXREFv17_FLORE_JOIN$PROTECTION_PACA = apply(TAXREFv17_FLORE_JOIN,1,ProtectionPACA)
+TAXREF_FLORE_JOIN$PROTECTION_PACA = apply(TAXREF_FLORE_JOIN,1,ProtectionPACA)
 
 ###############Ajout de baseflor################
-baseflor_bryoTAXREFv16 <- read.csv("../../../BDD_FLORE_CONSTRUCT/TAXONOMIE/TAXREF-MATCH-BASEFLOR/baseflor_bryoTAXREFv16.csv", sep=";")
+baseflor_bryoTAXREF <- read.csv2("../../../BDD_FLORE_CONSTRUCT/TAXONOMIE/TAXREF-MATCH-BASEFLOR/baseflor_bryoTAXREFv17.csv")
 
-baseflor_bryoTAXREFv16 = baseflor_bryoTAXREFv16 %>% select(CD_NOM,floraison,ecologie = CARACTERISATION_ECOLOGIQUE_.HABITAT_OPTIMAL., syntaxon = INDICATION_PHYTOSOCIOLOGIQUE_CARACTERISTIQUE)
+baseflor_bryoTAXREF = baseflor_bryoTAXREF %>% select(CD_NOM=CD_NOM,
+                                                           floraison=floraison,ecologie = CARACTERISATION_ECOLOGIQUE_.HABITAT_OPTIMAL.,
+                                                           syntaxon = INDICATION_PHYTOSOCIOLOGIQUE_CARACTERISTIQUE)
 
 # Vecteur de correspondance des chiffres aux mois
 correspondance_mois <- c("Janvier", "Février", "Mars", "Avril", "Mai", "Juin", "Juillet", "Août", "Septembre", "Octobre", "Novembre", "Décembre")
@@ -163,23 +164,72 @@ remplacer_chiffre_par_mois <- function(chiffre) {
 }
 
 # Appliquer la fonction sur la colonne du dataframe
-baseflor_bryoTAXREFv16$floraison <- sapply(baseflor_bryoTAXREFv16$floraison, remplacer_chiffre_par_mois)
+baseflor_bryoTAXREF$floraison <- sapply(baseflor_bryoTAXREF$floraison, remplacer_chiffre_par_mois)
 
 # jointure avec le reste du tableau
-baseflor_bryoTAXREFv16$CD_NOM = as.double(baseflor_bryoTAXREFv16$CD_NOM)
-joinbaseflor = left_join(TAXREFv17_FLORE_JOIN,baseflor_bryoTAXREFv16,by="CD_NOM")
+baseflor_bryoTAXREF$CD_NOM = as.double(baseflor_bryoTAXREF$CD_NOM)
+joinbaseflor = left_join(TAXREF_FLORE_JOIN,baseflor_bryoTAXREF,by="CD_NOM")
 
 #Ajout de BDD_FICHE_FLORE
-BDD_FICHE_FLORE <- read_excel("D:/Github/BDD_FLORE_CONSTRUCT/BDD_FICHE_FLORE/BDD_FICHE_FLORE.xlsx", 
-                              sheet = "IMG")
-BDD_FICHE_FLORE = BDD_FICHE_FLORE %>% select(CD_NOM,PATH_IMG,TEXTE_LEGEND_IMG)
-join_BDD_IMG = left_join(joinbaseflor,BDD_FICHE_FLORE,by="CD_NOM")
+#Si pas de BDD_FLore :
+joinbaseflor <- joinbaseflor %>% mutate(PATH_IMG = NA_character_,
+         TEXTE_LEGEND_IMG = NA_character_)
+join_BDD_IMG = joinbaseflor
 
+# BDD_FICHE_FLORE <- read_excel("../../../BDD_FLORE_CONSTRUCT/BDD_FICHE_FLORE/BDD_FICHE_FLORE.xlsx", 
+#                               sheet = "IMG")
+# BDD_FICHE_FLORE = BDD_FICHE_FLORE %>% select(CD_NOM,PATH_IMG,TEXTE_LEGEND_IMG)
+# join_BDD_IMG = left_join(joinbaseflor,BDD_FICHE_FLORE,by="CD_NOM")
+
+
+#Retrait des duplicats
+join_BDD_IMG = join_BDD_IMG[!duplicated(join_BDD_IMG$CD_NOM),]
 TAB_TO_EXPORT=join_BDD_IMG
 
 
+
+
 #Enregistrement du tableau a integrer à la methode enjeu PACA
-write.csv(TAB_TO_EXPORT,file = "TAB_GEN_METH_ENJEU_PACA.csv",row.names = F,fileEncoding = "UTF-8",na="-")
+TABLEAU_GENERAL = TAB_TO_EXPORT %>% dplyr::select(
+  CD_NOM = CD_NOM,
+  TRIGRAMME = TRIGRAMME,
+  NOM_VALIDE = NOM_VALIDE.x,
+  NOM_VERN = NOM_VERN,
+  FAMILLE = FAMILLE,
+  SOUS_FAMILLE = SOUS_FAMILLE,
+  INDIGENAT = INDIGENAT,
+  EVEE = EVEE,
+  DH = DH,
+  PN = PN,
+  LRN = LRN,
+  PR = PR,
+  PR_Corr = PR_Corr,
+  LRR = LRR,
+  ZNIEFF = ZNIEFF,
+  PD04 = PD04,
+  PD05 = PD05,
+  PD06 = PD06,
+  PD83 = PD83,
+  PD84 = PD84,
+  ENJEU_CBN = ENJEU_CBN,
+  indicatrice_ZH = indicatrice_ZH,
+  Barcelonne = Barcelonne,
+  Berne = Berne,
+  Mondiale = Mondiale,
+  Europe = Europe,
+  PROTECTION_PACA = PROTECTION_PACA,
+  floraison = floraison,
+  ecologie = CARACTERISATION_ECOLOGIQUE_.HABITAT_OPTIMAL.,
+  syntaxon = INDICATION_PHYTOSOCIOLOGIQUE_CARACTERISTIQUE,
+  PATH_IMG = PATH_IMG,
+  TEXTE_LEGEND_IMG = TEXTE_LEGEND_IMG
+)
+
+write.csv(TABLEAU_GENERAL,file = "TAB_GEN_METH_ENJEU_PACA.csv",row.names = F,fileEncoding = "UTF-8",na="-")
+
+
+#Enregistrement du tableau globale
+write.csv(TAB_TO_EXPORT,file = "TAB_TO_EXPORT.csv",row.names = F,fileEncoding = "UTF-8",na="-")
 
 
 
