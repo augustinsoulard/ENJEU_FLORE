@@ -85,6 +85,13 @@ TAB_EVEE$CD_NOM = updatetaxa(TAB_EVEE$CD_REF_12)
 TAB_EVEE = TAB_EVEE %>% select(CD_NOM,EEEmed = `Catégorie MED`,EEEmc = `Catégorie MC`,
                                EEEso = `Catégorie SO`,EEEpyr =`Catégorie PYR`)
 
+
+TAB_EVEE <- TAB_EVEE %>%
+  mutate(across(c(EEEmed, EEEmc, EEEso, EEEpyr),     
+                ~ .x %>%
+                  str_remove_all("PEE \\(|\\)") %>%
+                  str_remove_all("PEEpot \\(|\\)")
+  ))
 # Jointure flore EVEE
 TAXREF_FLORE_JOIN = left_join(TAXREF_FLORE_JOIN,TAB_EVEE,by=c("CD_REF"="CD_NOM"))
 
