@@ -154,7 +154,7 @@ TAXREF_FLORE_JOIN <- TAXREF_FLORE_JOIN %>%
   mutate(across(starts_with("ZNIEFF"), ~ ifelse(!is.na(.), "D", .)))
 
 #Création de la colonne Protection AuRA
-ProtectionOccitanie = function(x){
+Protection = function(x){
   valeur = NULL
   if(!is.na(x["PN"]) && x["PN"] != "-"){
     valeur = paste0(valeur," ","PN")
@@ -201,7 +201,7 @@ ProtectionOccitanie = function(x){
   return(valeur)
 }
 
-TAXREF_FLORE_JOIN$PROTECTION_PACA = apply(TAXREF_FLORE_JOIN,1,ProtectionPACA)
+TAXREF_FLORE_JOIN$ProtectionOccitanie = apply(TAXREF_FLORE_JOIN,1,Protection)
 
 ## Ajout de baseflor ####
 baseflor_bryoTAXREF <- read.csv2("../../../BDD_FLORE_CONSTRUCT/TAXONOMIE/TAXREF-MATCH-BASEFLOR/baseflor_bryoTAXREFv17.csv")
@@ -301,3 +301,4 @@ TABLEAU_GENERAL = TAB_TO_EXPORT %>% dplyr::select(
 )
 
 write.csv(TABLEAU_GENERAL,file = "TAB_GEN_METH_ENJEU_Occitanie.csv",row.names = F,fileEncoding = "UTF-8",na="-")
+
